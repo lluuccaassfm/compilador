@@ -24,8 +24,9 @@ WS_ : (' ' | '\n' ) -> skip;
 
 SL_COMMENT : '//' (~'\n')* '\n' -> skip;
 
-CHAR : '\'' (ESC|~'\'') '\'';
+CHAR : '\'' (ESC |ESP | [a-z] | [A-Z] | [0-9] | '['|']'|'{'|'|'|'}'|'~') '\'';
 STRING : '"' (ESC|~'"')* '"';
+HEXLIT : [0..9];
 
-fragment
-ESC :  '\\' ('n'|'"'|'t'|'\\');
+fragment ESC : '\\' ('n'|'"'|'t'|'\\');
+fragment ESP : '\\' ([ !#-&(-/:-@\-`]);
