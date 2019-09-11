@@ -47,7 +47,7 @@ CHAR: '\'' (ESC | ESPECIALASK | [a-z] | [A-Z] | INT | '['|']'|'{'|'|'|'}'|'~') '
 
 STRING: '"' ( ESC | ID | PONTUACAO | ESPECIALASK)+ '"';
 
-HEXLIT: NUMBER ('x'([a-zA-Z]|INT)+)?;
+HEXLIT: INT ('x'([a-fA-F]|INT)+)?;
 
 NUMBER: (INT)+;
 
