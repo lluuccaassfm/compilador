@@ -29,18 +29,30 @@ class Main {
 		        			String type = "";
 		        			String text = token.getText();
 
-		        			switch (token.getType())
-		        			{
-		        				case DecafLexer.ID:
-		        					type = " IDENTIFIER";
-		        					break;
+							switch (token.getType())
+							{
+								case DecafLexer.TOKENS:
+									type = "";
+									break;
+								case DecafLexer.ID:
+									type = " IDENTIFIER";
+									break;
 								case DecafLexer.CHAR:
 									type = " CHARLITERAL";
 									break;
-								case DecafLexer.HEXLIT:
-									type = "INTLITERAL";
+								case DecafLexer.STRING:
+									type = " STRINGLITERAL";
 									break;
-		        			}
+								case (DecafLexer.HEXLIT):
+									type = " INTLITERAL";
+									break;
+								case (DecafLexer.NUMBER):
+									type = " INTLITERAL";
+									break;
+								case (DecafLexer.BOOLEAN):
+									type = " BOOLEANLITERAL";
+									break;
+							}
 		        			System.out.println (token.getLine() + type + " " + text);
 		        		}
 		        		done = true;
