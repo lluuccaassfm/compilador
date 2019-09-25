@@ -17,7 +17,7 @@ tokens
 IF: 'if';
 BOOLEAN: 'boolean';
 CALLOUT: 'callout';
-CLASS: 'class';
+CLASS: 'class Program';
 ELSE: 'else';
 INTEGER: 'int';
 RETURN: 'return';
@@ -53,7 +53,9 @@ NUMBER: (INT)+;
 
 OP: '+' | '-' | '*'| '>' | '<' | '<=' | '!=' | '&&' | '==' | '=' | '||';
 
-PONTOS: ':'| ';' | ',';
+DOISPONTOS: ':';
+VIRG: ',';
+PONTOVIRG: ';';
 
 fragment ESC : '\\' ('n'|'"'|'t'|'\\');
 fragment ESPECIALASK : '\\' ([ !#-&(-/:-@\-`]);
