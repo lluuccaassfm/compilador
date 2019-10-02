@@ -51,22 +51,26 @@ HEXLIT: INT ('x'([a-fA-F]|INT)+)?;
 
 NUMBER: (INT)+;
 
-ARITH_OP: '+' | '-' | '*' | '/' | '%';
-
-REL_OP: '>' | '<' | '<=' | '>=';
-
-EQ_OP: '==' | '!=' ;
-
-COND_OP: '&&' | '||' ;
-
-ASSIGN_OP: '=' | '+=' | '-=' ;
-
 DOISPONTOS: ':';
 VIRG: ',';
 PONTOVIRG: ';';
 MENOS_OP: '-';
+MAIS_OP: '+';
+MULT_OP: '*';
+DIV_OP: '/';
+PORC_OP: '%';
+MAIOR_REL_OP: '>';
+MENOR_REL_OP: '<';
+MAIOR_IGUAL_REL_OP: '>=';
+MENOR_IGUAL_REL_OP: '<=';
+IGUAL_EQ_OP: '==';
+DIFERENTE_EQ_OP: '!=';
 SINAL_EXCLAMACAO: '!';
 SINAL_IGUAL: '=';
+SINAL_MAIS_IGUAL: '+=';
+SINAL_MENOS_IGUAL: '-=';
+AND_COND_OP: '&&';
+OR_COND_OP: '||';
 
 fragment ESC : '\\' ('n'|'"'|'t'|'\\');
 fragment ESPECIALASK : '\\' ([ !#-&(-/:-@\-`]);
