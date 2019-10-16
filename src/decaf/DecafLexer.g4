@@ -51,6 +51,8 @@ HEXLIT: INT ('x'([a-fA-F]|INT)+)?;
 
 NUMBER: (INT)+;
 
+INTEGER_LITERAL: (NUMBER | HEXLIT)+ ;
+
 DOISPONTOS: ':';
 VIRG: ',';
 PONTOVIRG: ';';

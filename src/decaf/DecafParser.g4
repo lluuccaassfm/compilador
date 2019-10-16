@@ -14,11 +14,11 @@ program: CLASS LCURLY (field_decl)* (method_decl)* RCURLY;
 
 field_decl: (type ID | type ID LCOLCHETE int_literal RCOLCHETE) ((VIRG field_decl)*)? PONTOVIRG;
 
-method_decl: (type | 'void') ID LPARENTESE ((type ID) ((VIRG type ID)*)?)? RPARENTESE block;
+method_decl: (type | 'void') ID LPARENTESE ((decl) ((VIRG decl)*)?)? RPARENTESE block;
 
 block: LCURLY (var_decl)* (statement)* RCURLY;
 
-var_decl: (type ID) ((VIRG type ID)*)? PONTOVIRG;
+var_decl: decl ((VIRG ID)*)? PONTOVIRG;
 
 statement: location assign_op expr PONTOVIRG |
             method_call PONTOVIRG |
@@ -43,7 +43,7 @@ callout_arg: expr | STRING;
 
 literal:  int_literal | CHAR | BOOLEANCONDITION;
 
-int_literal: NUMBER | HEXLIT;
+int_literal: INTEGER_LITERAL;
 
 bin_op: arith_op | rel_op | eq_op | cond_op;
 
@@ -56,5 +56,7 @@ rel_op: MAIOR_REL_OP | MENOR_REL_OP | MAIOR_IGUAL_REL_OP | MENOR_IGUAL_REL_OP;
 eq_op: IGUAL_EQ_OP | DIFERENTE_EQ_OP ;
 
 cond_op: AND_COND_OP | OR_COND_OP ;
+
+decl: type ID;
 
 
