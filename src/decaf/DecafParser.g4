@@ -12,13 +12,13 @@ options
 
 program: CLASS LCURLY (field_decl)* (method_decl)* RCURLY;
 
-field_decl: (type ID | type ID LCOLCHETE int_literal RCOLCHETE) ((VIRG field_decl)*)? PONTOVIRG;
+field_decl: (type ID | type ID LCOLCHETE int_literal RCOLCHETE) (VIRG field_decl)* PONTOVIRG;
 
-method_decl: (type | 'void') ID LPARENTESE ((decl) ((VIRG decl)*)?)? RPARENTESE block;
+method_decl: (type | 'void') ID LPARENTESE ((decl) (VIRG decl)*)? RPARENTESE block;
 
 block: LCURLY (var_decl)* (statement)* RCURLY;
 
-var_decl: decl ((VIRG ID)*)? PONTOVIRG;
+var_decl: decl (VIRG ID)* PONTOVIRG;
 
 statement: location assign_op expr PONTOVIRG |
             method_call PONTOVIRG |
@@ -37,13 +37,13 @@ location: ID | ID LCOLCHETE expr RCOLCHETE;
 
 method_name: ID;
 
-method_call: method_name LPARENTESE ((expr) ((VIRG expr)+)?)? RPARENTESE | CALLOUT LPARENTESE STRING (VIRG callout_arg ((VIRG callout_arg)*)?)? RPARENTESE;
+method_call: method_name LPARENTESE ((expr) ((VIRG expr)+)?)? RPARENTESE | CALLOUT LPARENTESE STRING (VIRG callout_arg (VIRG callout_arg)*)? RPARENTESE;
 
 callout_arg: expr | STRING;
 
 literal:  int_literal | CHAR | BOOLEANCONDITION;
 
-int_literal: INTEGER_LITERAL;
+int_literal: NUMBER | HEXLIT;
 
 bin_op: arith_op | rel_op | eq_op | cond_op;
 

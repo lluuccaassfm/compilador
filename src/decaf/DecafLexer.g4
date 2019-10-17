@@ -43,15 +43,15 @@ WS_ : (' ' | '\n' | '\t' | '\\\\')+ -> skip;
 
 SL_COMMENT : '//' (~'\n')* '\n' -> skip;
 
-CHAR: '\'' (ESC | ESPECIALASK | [a-z] | [A-Z] | INT | '['|']'|'{'|'|'|'}'|'~') '\'';
+CHAR: '\'' (ESC | PORC_OP | ESPECIALASK | [a-z] | [A-Z] | INT | '['|']'|'{'|'|'|'}'|'~') '\'';
 
-STRING: '"' ( ESC | ID | PONTUACAO | ESPECIALASK)+ '"';
+STRING: '"' ( ESC | ID | PONTUACAO | ESPECIALASK | PORC_OP)+ '"';
 
 HEXLIT: INT ('x'([a-fA-F]|INT)+)?;
 
 NUMBER: (INT)+;
 
-INTEGER_LITERAL: (NUMBER | HEXLIT)+ ;
+//INTEGER_LITERAL: (NUMBER | HEXLIT)+ ;
 
 DOISPONTOS: ':';
 VIRG: ',';
