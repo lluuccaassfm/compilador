@@ -9,6 +9,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import java.util.*;
 
 
 /**
@@ -32,9 +33,10 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override
     public void enterMethod_decl(DecafParser.Method_declContext ctx) {
+
         String name = ctx.ID().getText();
-        int typeTokenType = ctx.type().start.getType();
-        DecafSymbol.Type type = this.getType(typeTokenType);
+//        int typeTokenType = ctx.type().start.getType();
+//        DecafSymbol.Type type = this.getType(typeTokenType);
 
         // push new scope by making new one that points to enclosing scope
         FunctionSymbol function = new FunctionSymbol(name);
@@ -54,7 +56,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     public void enterBlock(DecafParser.BlockContext ctx) {
         LocalScope l = new LocalScope(currentScope);
         saveScope(ctx, currentScope);
-        // pushScope(l);
+        pushScope(l);
     }
 
     @Override
@@ -79,8 +81,41 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         }
     }
 
+    @Override
+    public void enterVar_decl(DecafParser.Var_declContext ctx) {
+        for(int i=0; i<ctx.ID().size(); i++){
+            defineVar(ctx.ID().get(i).getSymbol());
+        }
+    }
+
+    @Override
+    public void exitVar_decl(DecafParser.Var_declContext ctx) {
+        for(int i=0; i<ctx.ID().size(); i++) {
+
+            String name = ctx.ID().get(i).getSymbol().getText();
+            Symbol var = currentScope.resolve(name);
+
+            if (var == null) {
+                this.error(ctx.ID().get(i).getSymbol(), "no such variable: " + name);
+            }
+            if (var instanceof FunctionSymbol) {
+                this.error(ctx.ID().get(i).getSymbol(), name + " is not a variable");
+            }
+        }
+    }
+
+
     void defineVar(DecafParser.TypeContext typeCtx, Token nameToken) {
         int typeTokenType = typeCtx.start.getType();
+        VariableSymbol var = new VariableSymbol(nameToken.getText());
+
+        // DecafSymbol.Type type = this.getType(typeTokenType);
+        // var.setType(type);
+
+        currentScope.define(var); // Define symbol in current scope
+    }
+
+    void defineVar(Token nameToken) {
         VariableSymbol var = new VariableSymbol(nameToken.getText());
 
         // DecafSymbol.Type type = this.getType(typeTokenType);
