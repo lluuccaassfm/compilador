@@ -19,21 +19,33 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     ParseTreeProperty<Scope> scopes = new ParseTreeProperty<Scope>();
     GlobalScope globals;
     Scope currentScope; // define symbols in this scope
+    Boolean possuiMain = false;
 
     @Override
     public void enterProgram(DecafParser.ProgramContext ctx) {
         globals = new GlobalScope(null);
+
+        for(int i=0; i<ctx.method_decl().size();i++){
+            if(ctx.method_decl().get(i).ID().getText().equals("main")){
+                this.possuiMain = true;
+            }
+        }
         pushScope(globals);
     }
 
     @Override
     public void exitProgram(DecafParser.ProgramContext ctx) {
         System.out.println(globals);
+        if(this.possuiMain == true){
+            System.out.println("TEM MAIN");
+        }else{
+            System.out.println("NÃO TEM MAIN");
+        }
     }
 
     @Override
     public void enterMethod_decl(DecafParser.Method_declContext ctx) {
-
+        System.out.println("Method -> "+ctx.ID().getText());
         String name = ctx.ID().getText();
 //        int typeTokenType = ctx.type().start.getType();
 //        DecafSymbol.Type type = this.getType(typeTokenType);
@@ -53,16 +65,43 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     }
 
     @Override
-    public void enterBlock(DecafParser.BlockContext ctx) {
-        LocalScope l = new LocalScope(currentScope);
-        saveScope(ctx, currentScope);
-        pushScope(l);
+    public void enterField_decl(DecafParser.Field_declContext ctx) {
+        for(int i=0; i<ctx.ID().size(); i++){
+            System.out.println("Field -> "+ctx.ID().get(i).getSymbol().getText());
+            String f = ctx.ID().get(i).getSymbol().getText();
+            VariableSymbol field = new VariableSymbol(f);
+            currentScope.define(field);
+        }
     }
 
     @Override
-    public void exitBlock(DecafParser.BlockContext ctx) {
-        popScope();
+    public void exitField_decl(DecafParser.Field_declContext ctx) {
+        for(int i=0; i<ctx.ID().size(); i++) {
+
+            String name = ctx.ID().get(i).getSymbol().getText();
+            Symbol field = currentScope.resolve(name);
+
+            if (field == null) {
+                this.error(ctx.ID().get(i).getSymbol(), "no such variable: " + name);
+            }
+            if (field instanceof FunctionSymbol) {
+                this.error(ctx.ID().get(i).getSymbol(), name + " is not a variable");
+            }
+        }
     }
+
+
+//    @Override
+//    public void enterBlock(DecafParser.BlockContext ctx) {
+//        LocalScope l = new LocalScope(currentScope);
+//        saveScope(ctx, currentScope);
+//        pushScope(l);
+//    }
+//
+//    @Override
+//    public void exitBlock(DecafParser.BlockContext ctx) {
+//        popScope();
+//    }
 
     @Override
     public void enterDecl(DecafParser.DeclContext ctx) {
