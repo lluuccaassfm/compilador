@@ -24,6 +24,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     ArrayList<String> metodos = new ArrayList<String>();
     ArrayList<String> typeParams = new ArrayList<String>();
     Boolean typeVoid;
+    String typeMethod;
 
     @Override
     public void enterProgram(DecafParser.ProgramContext ctx) {
@@ -61,6 +62,10 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         }
 
         try{
+            this.typeMethod = ctx.type().getText();
+        }catch (Exception e){}
+
+        try{
             if(ctx.VOID().getText().equals("void")){
                 this.typeVoid = true;
             }
@@ -81,11 +86,49 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override
     public void exitMethod_decl(DecafParser.Method_declContext ctx) {
         try{
+            //metodo void
             if(typeVoid == true){
                 for(int i=0;i<ctx.block().statement().size();i++){
                     if(ctx.block().statement().get(i).RETURN().getText().equals("return")){
                         this.error(ctx.block().statement().get(i).RETURN().getSymbol(),"should not return value");
                         System.exit(0);
+                    }
+                }
+            }else{ //metodo não é void
+
+//                System.out.println("Tipo do retorno -> "+this.typeMethod);
+
+                for(int i=0;i<ctx.block().statement().size();i++){
+                    //verifica o retorno
+                    if(ctx.block().statement().get(i).RETURN().getText().equals("return")){
+                        for(int j=0;j<ctx.block().statement().get(i).expr().size();j++) {
+
+                            //entra no literal (boolean ou int)
+                            if(ctx.block().statement().get(i).expr().get(j).literal() != null){
+
+                                String literal = ctx.block().statement().get(i).expr().get(j).literal().getText();
+
+                                //caso o tipo seja 'boolean' e receba um valor diferente
+                                if(this.typeMethod.equals("boolean") && !(literal.equals("false") || literal.equals("true"))){
+                                    System.out.println("Esperando um boolean");
+                                    this.error(ctx.ID().getSymbol(),"return value has wrong type");
+                                    System.exit(0);
+                                }
+
+                                //caso o tipo seja 'int' e receba um valor diferente
+                                if(this.typeMethod.equals("int") && !(this.SoTemNumeros(literal))){
+                                    System.out.println("Esperando um int");
+                                    this.error(ctx.ID().getSymbol(),"return value has wrong type");
+                                    System.exit(0);
+                                }
+                            }
+
+                            // entra no location (variável)
+                            if(ctx.block().statement().get(i).expr().get(i).location() != null){
+
+                            }
+
+                        }
                     }
                 }
             }
@@ -98,12 +141,15 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 //        System.out.println("Method_cal ->"+ctx.expr().size());
 
         try{
+            //verifica se passou a quantidade de parâmentro correto
             if(!this.metodos.contains("{"+ctx.method_name().ID().getText()+","+ctx.expr().size()+"}")){
                 this.error(ctx.method_name().ID().getSymbol(),"argument mismatch");
                 System.exit(0);
             }
 
+            //verifica se passou o(s) tipo do(s) parametro(s) certo
             for(int i=0;i<ctx.expr().size();i++) {
+
                 //entrando no literal
                 if(ctx.expr().get(i).literal() != null){
 //                System.out.println("LITERAL -> "+ctx.expr().get(i).literal().getText());
@@ -132,6 +178,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     public void enterField_decl(DecafParser.Field_declContext ctx) {
         for(int i=0; i<ctx.ID().size(); i++){
             try{
+                //verifica se criou um array vazio
                 if(Integer.parseInt(ctx.int_literal().getText()) <= 0){
                     this.error(ctx.int_literal().HEXLIT().getSymbol(),"bad array size");
                     System.exit(0);
@@ -291,6 +338,22 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             case DecafParser.INTEGER_LITERAL :   return DecafSymbol.Type.tINT;
         }
         return DecafSymbol.Type.tINVALID;
+    }
+
+    /**
+     * Verifica se um texto só tem números
+     *
+     * @param texto
+     * @return
+     */
+
+    public boolean SoTemNumeros(String texto) {
+        for (int i = 0; i < texto.length(); i++) {
+            if (!Character.isDigit(texto.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
