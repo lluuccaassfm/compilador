@@ -79,28 +79,35 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override public void enterMethod_call(DecafParser.Method_callContext ctx) {
 //        System.out.println("Method_cal ->"+ctx.method_name().ID().getText());
 //        System.out.println("Method_cal ->"+ctx.expr().size());
+
         try{
             if(!this.metodos.contains("{"+ctx.method_name().ID().getText()+","+ctx.expr().size()+"}")){
                 this.error(ctx.method_name().ID().getSymbol(),"argument mismatch");
                 System.exit(0);
-            }else{
-                for(int i=0;i<ctx.expr().size();i++) {
-//                    System.out.println("++++++ "+ctx.expr().get(i).literal().getText());
-//                    if(ctx.expr().get(i).literal().getText().equals("false") || ctx.expr().get(i).literal().getText().equals("true")){
-//                        if(!this.typeParams.contains("{"+ctx.method_name().ID().getText()+","+i+",boolean}")){
-//                            this.error(ctx.method_name().ID().getSymbol(),"types don't match signature");
-//                            System.exit(0);
-//                        }
-//                    }
-//                    else{
-//                        if(!this.typeParams.contains("{"+ctx.method_name().ID().getText()+","+i+",int}")){
-//                            this.error(ctx.method_name().ID().getSymbol(),"types don't match signature");
-//                            System.exit(0);
-//                        }
-//                    }
-                }
             }
 
+            for(int i=0;i<ctx.expr().size();i++) {
+                //entrando no literal
+                if(ctx.expr().get(i).literal() != null){
+//                System.out.println("LITERAL -> "+ctx.expr().get(i).literal().getText());
+                    if(ctx.expr().get(i).literal().getText().equals("false") || ctx.expr().get(i).literal().getText().equals("true")){
+                        if(!this.typeParams.contains("{"+ctx.method_name().ID().getText()+","+i+",boolean}")){
+                            this.error(ctx.method_name().ID().getSymbol(),"types don't match signature");
+                            System.exit(0);
+                        }
+                    }else{
+                        if(!this.typeParams.contains("{"+ctx.method_name().ID().getText()+","+i+",int}")){
+                            this.error(ctx.method_name().ID().getSymbol(),"types don't match signature");
+                            System.exit(0);
+                        }
+                    }
+                }
+
+                //entrando no location
+                if(ctx.expr().get(i).location() != null){
+//                System.out.println("LOCATION -> "+ ctx.expr().get(i).location().getText());
+                }
+            }
         }catch(Exception e){}
     }
 
