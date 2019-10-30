@@ -20,6 +20,9 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     GlobalScope globals;
     Scope currentScope; // define symbols in this scope
     Boolean possuiMain = false;
+    ArrayList<String> variaveis = new ArrayList<String>();
+    ArrayList<String> metodos = new ArrayList<String>();
+    ArrayList<String> typeParams = new ArrayList<String>();
 
     @Override
     public void enterProgram(DecafParser.ProgramContext ctx) {
@@ -36,17 +39,26 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override
     public void exitProgram(DecafParser.ProgramContext ctx) {
         System.out.println(globals);
-        if(this.possuiMain == true){
-            System.out.println("TEM MAIN");
-        }else{
-            System.out.println("NÃO TEM MAIN");
+        if(this.possuiMain == false){
+            this.error(ctx.method_decl().get(0).ID().getSymbol(),"No main method");
+            System.exit(0);
         }
+
+        System.out.println("Variáveis declaradas: "+this.variaveis.toString());
+        System.out.println("Methods: "+this.metodos.toString());
+        System.out.println("MethodsType: "+this.typeParams.toString());
     }
 
     @Override
     public void enterMethod_decl(DecafParser.Method_declContext ctx) {
-        System.out.println("Method -> "+ctx.ID().getText());
         String name = ctx.ID().getText();
+
+        this.metodos.add("{"+name + "," + ctx.decl().size()+"}"); // {nome,quantidade de parametros}
+
+        for(int i=0;i<ctx.decl().size();i++){
+            this.typeParams.add("{"+name+","+i+","+ctx.decl().get(i).type().getText()+"}"); // {nome, posição do parametro, tipo do parametro}
+        }
+
 //        int typeTokenType = ctx.type().start.getType();
 //        DecafSymbol.Type type = this.getType(typeTokenType);
 
@@ -64,13 +76,49 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         popScope();
     }
 
+    @Override public void enterMethod_call(DecafParser.Method_callContext ctx) {
+//        System.out.println("Method_cal ->"+ctx.method_name().ID().getText());
+//        System.out.println("Method_cal ->"+ctx.expr().size());
+        try{
+            if(!this.metodos.contains("{"+ctx.method_name().ID().getText()+","+ctx.expr().size()+"}")){
+                this.error(ctx.method_name().ID().getSymbol(),"argument mismatch");
+                System.exit(0);
+            }else{
+                for(int i=0;i<ctx.expr().size();i++) {
+//                    System.out.println("++++++ "+ctx.expr().get(i).literal().getText());
+//                    if(ctx.expr().get(i).literal().getText().equals("false") || ctx.expr().get(i).literal().getText().equals("true")){
+//                        if(!this.typeParams.contains("{"+ctx.method_name().ID().getText()+","+i+",boolean}")){
+//                            this.error(ctx.method_name().ID().getSymbol(),"types don't match signature");
+//                            System.exit(0);
+//                        }
+//                    }
+//                    else{
+//                        if(!this.typeParams.contains("{"+ctx.method_name().ID().getText()+","+i+",int}")){
+//                            this.error(ctx.method_name().ID().getSymbol(),"types don't match signature");
+//                            System.exit(0);
+//                        }
+//                    }
+                }
+            }
+
+        }catch(Exception e){}
+    }
+
     @Override
     public void enterField_decl(DecafParser.Field_declContext ctx) {
         for(int i=0; i<ctx.ID().size(); i++){
-            System.out.println("Field -> "+ctx.ID().get(i).getSymbol().getText());
-            String f = ctx.ID().get(i).getSymbol().getText();
-            VariableSymbol field = new VariableSymbol(f);
-            currentScope.define(field);
+            try{
+                if(Integer.parseInt(ctx.int_literal().getText()) <= 0){
+                    this.error(ctx.int_literal().HEXLIT().getSymbol(),"bad array size");
+                    System.exit(0);
+                }
+            }catch (Exception e){ }
+
+            String field = ctx.ID().get(i).getSymbol().getText();
+            this.variaveis.add(field);
+
+            VariableSymbol fieldSymbol = new VariableSymbol(field);
+            currentScope.define(fieldSymbol);
         }
     }
 
@@ -91,21 +139,31 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     }
 
 
-//    @Override
-//    public void enterBlock(DecafParser.BlockContext ctx) {
+    @Override
+    public void enterBlock(DecafParser.BlockContext ctx) {
 //        LocalScope l = new LocalScope(currentScope);
 //        saveScope(ctx, currentScope);
 //        pushScope(l);
-//    }
-//
-//    @Override
-//    public void exitBlock(DecafParser.BlockContext ctx) {
+    }
+
+    @Override
+    public void exitBlock(DecafParser.BlockContext ctx) {
 //        popScope();
-//    }
+    }
+
+    @Override public void enterStatement(DecafParser.StatementContext ctx) {
+        try{
+            if(!this.variaveis.contains(ctx.location().ID().getText())){
+                this.error(ctx.location().ID().getSymbol(),"identifier used before being declared");
+                System.exit(0);
+            }
+        }catch (Exception e){}
+    }
 
     @Override
     public void enterDecl(DecafParser.DeclContext ctx) {
         defineVar(ctx.type(), ctx.ID().getSymbol());
+        this.variaveis.add(ctx.ID().getText());
     }
 
     @Override
@@ -123,6 +181,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override
     public void enterVar_decl(DecafParser.Var_declContext ctx) {
         for(int i=0; i<ctx.ID().size(); i++){
+            this.variaveis.add(ctx.ID().get(i).getText());
             defineVar(ctx.ID().get(i).getSymbol());
         }
     }
@@ -164,7 +223,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     }
 
     /**
-     * Método que atuliza o escopo para o atual e imprime o valor
+     * Método que atualiza o escopo para o atual e imprime o valor
      *
      * @param s
      */
