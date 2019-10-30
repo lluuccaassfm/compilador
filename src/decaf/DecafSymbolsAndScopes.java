@@ -23,6 +23,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     ArrayList<String> variaveis = new ArrayList<String>();
     ArrayList<String> metodos = new ArrayList<String>();
     ArrayList<String> typeParams = new ArrayList<String>();
+    Boolean typeVoid;
 
     @Override
     public void enterProgram(DecafParser.ProgramContext ctx) {
@@ -44,20 +45,26 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             System.exit(0);
         }
 
-        System.out.println("Variáveis declaradas: "+this.variaveis.toString());
-        System.out.println("Methods: "+this.metodos.toString());
-        System.out.println("MethodsType: "+this.typeParams.toString());
+//        System.out.println("Variáveis declaradas: "+this.variaveis.toString());
+//        System.out.println("Methods: "+this.metodos.toString());
+//        System.out.println("MethodsType: "+this.typeParams.toString());
     }
 
     @Override
     public void enterMethod_decl(DecafParser.Method_declContext ctx) {
         String name = ctx.ID().getText();
-
+        this.typeVoid = false;
         this.metodos.add("{"+name + "," + ctx.decl().size()+"}"); // {nome,quantidade de parametros}
 
         for(int i=0;i<ctx.decl().size();i++){
             this.typeParams.add("{"+name+","+i+","+ctx.decl().get(i).type().getText()+"}"); // {nome, posição do parametro, tipo do parametro}
         }
+
+        try{
+            if(ctx.VOID().getText().equals("void")){
+                this.typeVoid = true;
+            }
+        }catch (Exception e){}
 
 //        int typeTokenType = ctx.type().start.getType();
 //        DecafSymbol.Type type = this.getType(typeTokenType);
@@ -73,6 +80,16 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override
     public void exitMethod_decl(DecafParser.Method_declContext ctx) {
+        try{
+            if(typeVoid == true){
+                for(int i=0;i<ctx.block().statement().size();i++){
+                    if(ctx.block().statement().get(i).RETURN().getText().equals("return")){
+                        this.error(ctx.block().statement().get(i).RETURN().getSymbol(),"should not return value");
+                        System.exit(0);
+                    }
+                }
+            }
+        }catch (Exception e){}
         popScope();
     }
 
