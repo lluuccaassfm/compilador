@@ -12,9 +12,9 @@ options
 
 program: CLASS LCURLY (field_decl)* (method_decl)* RCURLY;
 
-field_decl: (type ID | type ID LCOLCHETE int_literal RCOLCHETE) (VIRG field_decl)* PONTOVIRG;
+field_decl: (type ID | type ID LCOLCHETE int_literal RCOLCHETE) (VIRG ID)* PONTOVIRG;
 
-method_decl: (type | 'void') ID LPARENTESE ((decl) (VIRG decl)*)? RPARENTESE block;
+method_decl: (type | VOID) ID LPARENTESE ((decl) (VIRG decl)*)? RPARENTESE block;
 
 block: LCURLY (var_decl)* (statement)* RCURLY;
 
@@ -57,6 +57,6 @@ eq_op: IGUAL_EQ_OP | DIFERENTE_EQ_OP ;
 
 cond_op: AND_COND_OP | OR_COND_OP ;
 
-decl: type ID;
+decl: type ID ;
 
 
