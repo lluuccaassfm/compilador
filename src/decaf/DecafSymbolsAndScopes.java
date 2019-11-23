@@ -21,6 +21,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     Scope currentScope; // define symbols in this scope
     Boolean possuiMain = false;
     ArrayList<String> variaveis = new ArrayList<String>();
+    ArrayList<String> variaveisAndTypes = new ArrayList<String>();
     ArrayList<String> metodos = new ArrayList<String>();
     ArrayList<String> typeParams = new ArrayList<String>();
     Boolean typeVoid;
@@ -49,6 +50,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 //        System.out.println("Variáveis declaradas: "+this.variaveis.toString());
 //        System.out.println("Methods: "+this.metodos.toString());
 //        System.out.println("MethodsType: "+this.typeParams.toString());
+//        System.out.println("Variáveis and Types: "+this.variaveisAndTypes);
     }
 
     @Override
@@ -177,6 +179,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override
     public void enterField_decl(DecafParser.Field_declContext ctx) {
         for(int i=0; i<ctx.ID().size(); i++){
+
             try{
                 //verifica se criou um array vazio
                 if(Integer.parseInt(ctx.int_literal().getText()) <= 0){
@@ -187,6 +190,9 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
             String field = ctx.ID().get(i).getSymbol().getText();
             this.variaveis.add(field);
+
+            //adicionando variáveis associado ao tipo
+            this.variaveisAndTypes.add("{"+field+","+ctx.type().getText()+"}");
 
             VariableSymbol fieldSymbol = new VariableSymbol(field);
             currentScope.define(fieldSymbol);
@@ -228,6 +234,14 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                 this.error(ctx.location().ID().getSymbol(),"identifier used before being declared");
                 System.exit(0);
             }
+
+            if(ctx.location().LCOLCHETE() != null){
+                if(!this.variaveisAndTypes.contains("{"+ctx.location().expr().getText()+","+"int"+"}")){
+                    this.error(ctx.location().ID().getSymbol(),"array index has wrong type");
+                    System.exit(0);
+                }
+            }
+
         }catch (Exception e){}
     }
 
@@ -235,6 +249,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     public void enterDecl(DecafParser.DeclContext ctx) {
         defineVar(ctx.type(), ctx.ID().getSymbol());
         this.variaveis.add(ctx.ID().getText());
+        this.variaveisAndTypes.add("{"+ctx.ID().getText()+","+ctx.type().getText()+"}");
     }
 
     @Override
@@ -253,6 +268,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     public void enterVar_decl(DecafParser.Var_declContext ctx) {
         for(int i=0; i<ctx.ID().size(); i++){
             this.variaveis.add(ctx.ID().get(i).getText());
+            this.variaveisAndTypes.add("{"+ctx.ID().get(i).getText()+","+ctx.decl().type().getText()+"}");
             defineVar(ctx.ID().get(i).getSymbol());
         }
     }
@@ -275,11 +291,12 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
 
     void defineVar(DecafParser.TypeContext typeCtx, Token nameToken) {
+
         int typeTokenType = typeCtx.start.getType();
         VariableSymbol var = new VariableSymbol(nameToken.getText());
 
-        // DecafSymbol.Type type = this.getType(typeTokenType);
-        // var.setType(type);
+//         DecafSymbol.Type type = this.getType(typeTokenType);
+//         var.setType(type);
 
         currentScope.define(var); // Define symbol in current scope
     }
