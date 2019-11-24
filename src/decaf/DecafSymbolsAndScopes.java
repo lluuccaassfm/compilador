@@ -235,6 +235,19 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override public void enterStatement(DecafParser.StatementContext ctx) {
         try{
+            if(ctx.IF() != null){
+                for(int i=0;i<ctx.expr().size();i++) {
+                    if(!ctx.expr().get(i).location().ID().getText().equals("true")
+                        || !ctx.expr().get(i).location().ID().getText().equals("false")
+                        || !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).location().ID().getText()+","+"boolean"+"}")
+                        || !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).location().ID().getText()+","+"boolean"+","+"array"+"}")){
+
+                        this.error(ctx.expr().get(i).location().ID().getSymbol(),"condition should be a boolean");
+                        System.exit(0);
+                    }
+                }
+            }
+
             if(!this.variaveis.contains(ctx.location().ID().getText())){
                 this.error(ctx.location().ID().getSymbol(),"identifier used before being declared");
                 System.exit(0);
