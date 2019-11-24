@@ -248,6 +248,15 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                 }
             }
 
+            if(ctx.FOR() != null){
+                if(ctx.expr().get(0).getText().equals("true")
+                        || ctx.expr().get(0).getText().equals("false")
+                        || !this.variaveisAndTypes.contains("{"+ctx.expr().get(0).location().ID().getText()+","+"int"+"}")){
+                    this.error(ctx.ID().getSymbol(),"initial condition must be an int");
+                    System.exit(0);
+                }
+            }
+
             if(!this.variaveis.contains(ctx.location().ID().getText())){
                 this.error(ctx.location().ID().getSymbol(),"identifier used before being declared");
                 System.exit(0);
@@ -292,6 +301,15 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                             && (!ctx.expr().get(i).getText().equals("true") && !ctx.expr().get(i).getText().equals("false"))){
 
                         this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
+                        System.exit(0);
+                    }
+                }
+            }
+
+            if(ctx.location() != null){
+                for(int i=0;i<ctx.expr().size();i++) {
+                    if (ctx.expr().get(i).bin_op().rel_op().getText() != null){
+                        this.error(ctx.location().ID().getSymbol(),"rhs should be an int expression");
                         System.exit(0);
                     }
                 }
