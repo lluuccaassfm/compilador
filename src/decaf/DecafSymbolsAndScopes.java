@@ -304,12 +304,23 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 //                        this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
 //                        System.exit(0);
 //                    }
-                }
-
-                if(ctx.location() != null){
-                    for(int i=0;i<ctx.expr().size();i++) {
+//                }
+//
+//                if(ctx.location() != null){
+//                    for(int i=0;i<ctx.expr().size();i++) {
                         if (verifyType=="int" && ctx.expr().get(i).bin_op().rel_op().getText() != null){
                             this.error(ctx.location().ID().getSymbol(),"rhs should be an int expression");
+                            System.exit(0);
+                        }
+//                    }
+
+                    if(ctx.expr().get(i).getText().contains("!")){
+                        if(!ctx.expr().get(i).expr().get(0).getText().equals("true")
+                            && !ctx.expr().get(i).expr().get(0).getText().equals("false")
+//                            && !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).expr().get(0).location().ID().getText()+","+"boolean"+"}")
+                        ){
+                            System.out.println("entroou");
+                            this.error(ctx.location().ID().getSymbol(),"operand of ! must be boolean");
                             System.exit(0);
                         }
                     }
@@ -323,6 +334,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                         }
                     }
                 }
+
             }
 
         }catch (Exception e){}
