@@ -296,24 +296,35 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                     if(verifyType == "int" && this.variaveisAndTypes.contains("{"+ctx.expr().get(i).getText()+","+"int"+","+"array"+"}")){
                         this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
                         System.exit(0);
-                    }else if (verifyType == "boolean"
-                            && !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).getText()+","+"boolean"+"}")
-                            && (!ctx.expr().get(i).getText().equals("true") && !ctx.expr().get(i).getText().equals("false"))){
+                    }
+//                    else if (verifyType == "boolean"
+//                            && !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).getText()+","+"boolean"+"}")
+//                            && (!ctx.expr().get(i).getText().equals("true") && !ctx.expr().get(i).getText().equals("false"))){
+//
+//                        this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
+//                        System.exit(0);
+//                    }
+                }
 
-                        this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
-                        System.exit(0);
+                if(ctx.location() != null){
+                    for(int i=0;i<ctx.expr().size();i++) {
+                        if (verifyType=="int" && ctx.expr().get(i).bin_op().rel_op().getText() != null){
+                            this.error(ctx.location().ID().getSymbol(),"rhs should be an int expression");
+                            System.exit(0);
+                        }
+                    }
+                }
+
+                if(ctx.expr().get(0).bin_op().rel_op() != null){
+                    for(int i=0;i<ctx.expr().get(0).expr().size();i++){
+                        if(ctx.expr().get(0).expr(i).getText().equals("true") || ctx.expr().get(0).expr(i).getText().equals("false")){
+                            this.error(ctx.location().ID().getSymbol(),"operands of > must be ints");
+                            System.exit(0);
+                        }
                     }
                 }
             }
 
-            if(ctx.location() != null){
-                for(int i=0;i<ctx.expr().size();i++) {
-                    if (ctx.expr().get(i).bin_op().rel_op().getText() != null){
-                        this.error(ctx.location().ID().getSymbol(),"rhs should be an int expression");
-                        System.exit(0);
-                    }
-                }
-            }
         }catch (Exception e){}
     }
 
