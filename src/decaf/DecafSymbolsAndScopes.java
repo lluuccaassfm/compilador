@@ -21,6 +21,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     Scope currentScope; // define symbols in this scope
     Boolean possuiMain = false;
     ArrayList<String> variaveis = new ArrayList<String>();
+    ArrayList<String> variaveisAndTypes = new ArrayList<String>();
     ArrayList<String> metodos = new ArrayList<String>();
     ArrayList<String> typeParams = new ArrayList<String>();
     Boolean typeVoid;
@@ -49,6 +50,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 //        System.out.println("Variáveis declaradas: "+this.variaveis.toString());
 //        System.out.println("Methods: "+this.metodos.toString());
 //        System.out.println("MethodsType: "+this.typeParams.toString());
+//        System.out.println("Variáveis and Types: "+this.variaveisAndTypes);
     }
 
     @Override
@@ -177,6 +179,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override
     public void enterField_decl(DecafParser.Field_declContext ctx) {
         for(int i=0; i<ctx.ID().size(); i++){
+
             try{
                 //verifica se criou um array vazio
                 if(Integer.parseInt(ctx.int_literal().getText()) <= 0){
@@ -187,6 +190,14 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
             String field = ctx.ID().get(i).getSymbol().getText();
             this.variaveis.add(field);
+
+
+            if(ctx.LCOLCHETE() == null){
+                //adicionando variáveis associado ao tipo
+                this.variaveisAndTypes.add("{"+field+","+ctx.type().getText()+"}");
+            }else{
+                this.variaveisAndTypes.add("{"+field+","+ctx.type().getText()+","+"array"+"}");
+            }
 
             VariableSymbol fieldSymbol = new VariableSymbol(field);
             currentScope.define(fieldSymbol);
@@ -224,10 +235,124 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override public void enterStatement(DecafParser.StatementContext ctx) {
         try{
+            if(ctx.IF() != null){
+                for(int i=0;i<ctx.expr().size();i++) {
+                    if(!ctx.expr().get(i).location().ID().getText().equals("true")
+                        || !ctx.expr().get(i).location().ID().getText().equals("false")
+                        || !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).location().ID().getText()+","+"boolean"+"}")
+                        || !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).location().ID().getText()+","+"boolean"+","+"array"+"}")){
+
+                        this.error(ctx.expr().get(i).location().ID().getSymbol(),"condition should be a boolean");
+                        System.exit(0);
+                    }
+                }
+            }
+
+            if(ctx.FOR() != null){
+                if(ctx.expr().get(0).getText().equals("true")
+                        || ctx.expr().get(0).getText().equals("false")
+                        || !this.variaveisAndTypes.contains("{"+ctx.expr().get(0).location().ID().getText()+","+"int"+"}")){
+                    this.error(ctx.ID().getSymbol(),"initial condition must be an int");
+                    System.exit(0);
+                }
+            }
+
             if(!this.variaveis.contains(ctx.location().ID().getText())){
                 this.error(ctx.location().ID().getSymbol(),"identifier used before being declared");
                 System.exit(0);
             }
+
+            if(ctx.location().LCOLCHETE() != null){
+                //verificando se o valor expr é inteiro ou não
+                try{
+                    int verify = Integer.parseInt(ctx.location().expr().getText());
+                }catch (NumberFormatException e){
+                    if(!this.variaveisAndTypes.contains("{"+ctx.location().expr().getText()+","+"int"+"}")){
+                        this.error(ctx.location().ID().getSymbol(),"array index has wrong type");
+                        System.exit(0);
+                    }
+                }
+            }
+
+            if(ctx.assign_op().getText() != null){
+                String verifyType = "";
+                String verifyArray = "";
+
+                if(this.variaveisAndTypes.contains("{"+ctx.location().ID().getText()+","+"int"+","+"array"+"}")){
+                    verifyType = "int";
+                    verifyArray = "array";
+                }else if(this.variaveisAndTypes.contains("{"+ctx.location().ID().getText()+","+"boolean"+","+"array"+"}")){
+                    verifyType = "boolean";
+                    verifyArray = "array";
+                }else if (this.variaveisAndTypes.contains("{"+ctx.location().ID().getText()+","+"int"+"}")){
+                    verifyType = "int";
+                    verifyArray = null;
+                }else if (this.variaveisAndTypes.contains("{"+ctx.location().ID().getText()+","+"boolean"+"}")){
+                    verifyType = "boolean";
+                    verifyArray = null;
+                }
+
+                if(ctx.assign_op().SINAL_MAIS_IGUAL() != null || ctx.assign_op().SINAL_MENOS_IGUAL() != null){
+                    if(!verifyType.equals("int") || ctx.expr().get(0).literal().int_literal() == null){
+                        this.error(ctx.location().ID().getSymbol(), "lhs and rhs of += must be int");
+                        System.exit(0);
+                    }
+                }
+
+                for(int i=0;i<ctx.expr().size();i++){
+                    if(verifyType == "int" && this.variaveisAndTypes.contains("{"+ctx.expr().get(i).getText()+","+"int"+","+"array"+"}")){
+                        this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
+                        System.exit(0);
+                    }
+//                    else if (verifyType == "boolean"
+//                            && !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).getText()+","+"boolean"+"}")
+//                            && (!ctx.expr().get(i).getText().equals("true") && !ctx.expr().get(i).getText().equals("false"))){
+//
+//                        this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
+//                        System.exit(0);
+//                    }
+//                }
+//
+//                if(ctx.location() != null){
+//                    for(int i=0;i<ctx.expr().size();i++) {
+                    if (verifyType=="int" && ctx.expr().get(i).bin_op().rel_op().getText() != null){
+                            this.error(ctx.location().ID().getSymbol(),"rhs should be an int expression");
+                            System.exit(0);
+                        }
+//                    }
+
+                    if(ctx.expr().get(i).getText().contains("!")){
+                        if(!ctx.expr().get(i).expr().get(0).getText().equals("true")
+                            && !ctx.expr().get(i).expr().get(0).getText().equals("false")
+//                            && !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).expr().get(0).location().ID().getText()+","+"boolean"+"}")
+                        ){
+                            this.error(ctx.location().ID().getSymbol(),"operand of ! must be boolean");
+                            System.exit(0);
+                        }
+                    }
+                }
+
+                if(ctx.expr().get(0).bin_op().rel_op() != null){
+                    for(int i=0;i<ctx.expr().get(0).expr().size();i++){
+                        if(ctx.expr().get(0).expr(i).getText().equals("true") || ctx.expr().get(0).expr(i).getText().equals("false")){
+                            this.error(ctx.location().ID().getSymbol(),"operands of > must be ints");
+                            System.exit(0);
+                        }
+                    }
+                }
+
+                if (ctx.expr().get(0).bin_op().eq_op() != null) {
+                    for (int i = 0; i < ctx.expr().get(0).expr().size(); i++) {
+                        if (ctx.expr().get(0).expr(i).getText().equals("true") || ctx.expr().get(0).expr(i).getText().equals("false")){
+                            this.error(ctx.location().ID().getSymbol(),"types of operands of == must be equal");
+                            System.exit(0);
+                        }
+                    }
+                }
+
+
+            }
+
         }catch (Exception e){}
     }
 
@@ -235,6 +360,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     public void enterDecl(DecafParser.DeclContext ctx) {
         defineVar(ctx.type(), ctx.ID().getSymbol());
         this.variaveis.add(ctx.ID().getText());
+        this.variaveisAndTypes.add("{"+ctx.ID().getText()+","+ctx.type().getText()+"}");
     }
 
     @Override
@@ -253,6 +379,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     public void enterVar_decl(DecafParser.Var_declContext ctx) {
         for(int i=0; i<ctx.ID().size(); i++){
             this.variaveis.add(ctx.ID().get(i).getText());
+            this.variaveisAndTypes.add("{"+ctx.ID().get(i).getText()+","+ctx.decl().type().getText()+"}");
             defineVar(ctx.ID().get(i).getSymbol());
         }
     }
@@ -275,11 +402,12 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
 
     void defineVar(DecafParser.TypeContext typeCtx, Token nameToken) {
+
         int typeTokenType = typeCtx.start.getType();
         VariableSymbol var = new VariableSymbol(nameToken.getText());
 
-        // DecafSymbol.Type type = this.getType(typeTokenType);
-        // var.setType(type);
+//         DecafSymbol.Type type = this.getType(typeTokenType);
+//         var.setType(type);
 
         currentScope.define(var); // Define symbol in current scope
     }
