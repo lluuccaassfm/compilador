@@ -50,7 +50,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 //        System.out.println("Variáveis declaradas: "+this.variaveis.toString());
 //        System.out.println("Methods: "+this.metodos.toString());
 //        System.out.println("MethodsType: "+this.typeParams.toString());
-        System.out.println("Variáveis and Types: "+this.variaveisAndTypes);
+//        System.out.println("Variáveis and Types: "+this.variaveisAndTypes);
     }
 
     @Override
@@ -292,6 +292,13 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                     verifyArray = null;
                 }
 
+                if(ctx.assign_op().SINAL_MAIS_IGUAL() != null || ctx.assign_op().SINAL_MENOS_IGUAL() != null){
+                    if(!verifyType.equals("int") || ctx.expr().get(0).literal().int_literal() == null){
+                        this.error(ctx.location().ID().getSymbol(), "lhs and rhs of += must be int");
+                        System.exit(0);
+                    }
+                }
+
                 for(int i=0;i<ctx.expr().size();i++){
                     if(verifyType == "int" && this.variaveisAndTypes.contains("{"+ctx.expr().get(i).getText()+","+"int"+","+"array"+"}")){
                         this.error(ctx.location().ID().getSymbol(), "bad type, rhs should be an int");
@@ -308,7 +315,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 //
 //                if(ctx.location() != null){
 //                    for(int i=0;i<ctx.expr().size();i++) {
-                        if (verifyType=="int" && ctx.expr().get(i).bin_op().rel_op().getText() != null){
+                    if (verifyType=="int" && ctx.expr().get(i).bin_op().rel_op().getText() != null){
                             this.error(ctx.location().ID().getSymbol(),"rhs should be an int expression");
                             System.exit(0);
                         }
@@ -319,7 +326,6 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                             && !ctx.expr().get(i).expr().get(0).getText().equals("false")
 //                            && !this.variaveisAndTypes.contains("{"+ctx.expr().get(i).expr().get(0).location().ID().getText()+","+"boolean"+"}")
                         ){
-                            System.out.println("entroou");
                             this.error(ctx.location().ID().getSymbol(),"operand of ! must be boolean");
                             System.exit(0);
                         }
@@ -334,6 +340,16 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                         }
                     }
                 }
+
+                if (ctx.expr().get(0).bin_op().eq_op() != null) {
+                    for (int i = 0; i < ctx.expr().get(0).expr().size(); i++) {
+                        if (ctx.expr().get(0).expr(i).getText().equals("true") || ctx.expr().get(0).expr(i).getText().equals("false")){
+                            this.error(ctx.location().ID().getSymbol(),"types of operands of == must be equal");
+                            System.exit(0);
+                        }
+                    }
+                }
+
 
             }
 
